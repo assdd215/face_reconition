@@ -1,3 +1,5 @@
 facenet/imgs/
 facenet/model/
+*.pyc
+
 
