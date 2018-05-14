@@ -11,7 +11,7 @@ import types
 
 
 model = "/Users/aria/PycharmProjects/style_recongnize/facenet/model/20170512-110547.pb"
-base_img_path = "/Users/aria/MyDocs/pics/anchors"
+base_img_path = "/Users/aria/MyDocs/pics/test"
 save_path = "/Users/aria/MyDocs/pics/resize_anchors"
 image_size = 160 # 根据facenet论文介绍，图像的质量对识别结果影响不大，因此这个值不要去改动它，改动会导致结果不正确。
 margin = 44
@@ -30,16 +30,22 @@ def load_imgs(img_path = base_img_path,use_to_save = True):
         sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
         with sess.as_default():
             pnet, rnet, onet = align.detect_face.create_mtcnn(sess, None)
-    img_paths = os.listdir(img_path)
+    if os.path.isfile(img_path):
+        img_paths = [img_path]
+    else:
+        img_paths = os.listdir(img_path)
     for image in img_paths:
         if image == '.DS_Store':
             continue
-        aligned = mtcnn(os.path.join(img_path, image),minsize,pnet,rnet,onet,threshold,factor)
+        if os.path.isfile(image):
+            aligned = mtcnn(image, minsize, pnet, rnet, onet, threshold, factor)
+        else:
+            aligned = mtcnn(os.path.join(img_path, image),minsize,pnet,rnet,onet,threshold,factor)
         if aligned is None:
             img_paths.remove(image)
             continue
         if use_to_save:
-            result[image.split('.')[0]] = aligned
+            result[image.split('.')[0]] = aligned # 去除图片后缀，只保存图片id
         else:
             prewhitened = facenet.prewhiten(aligned)  # 图片进行白化
             result[image.split('.')[0]] = prewhitened
@@ -199,7 +205,8 @@ def check_all_in_database(img_path):
 
 
 
-
+if __name__ == '__main__':
+    save_imgs()
 
 
 

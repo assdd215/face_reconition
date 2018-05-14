@@ -3,31 +3,24 @@ import tensorflow as tf
 import numpy as np
 import os
 import facenet
-import json
+import csv
 import predeal
 import types
 
 model = "model/20170512-110547.pb"
-database_file = "/Users/aria/PycharmProjects/style_recongnize/facenet/model/database.npy"
+database_file = "/Users/aria/PycharmProjects/face_reconition/facenet/model/database.npy"
 pic1 = "imgs/318.jpg"
 pic2 = "imgs/319.jpg"
-model = "/Users/aria/PycharmProjects/style_recongnize/facenet/model/20170512-110547.pb"
+model = "/Users/aria/PycharmProjects/face_reconition/facenet/model/20170512-110547.pb"
 
 
 class SimpleData(object):
-    key = 0.0
-    value = 0.0
-    target = 0.0
-    time = 0
-    def __init__(self):
-        self.key = 0.0
-        self.value = 0.0
+    key = ""
+    value = ""
+    target = ""
+    time = ""
 
-    def __init__(self,key,value):
-        self.key = key
-        self.value = value
-
-    def __init__(self,key,value,target):
+    def __init__(self,key="",value="",target=""):
         self.key = key
         self.value = value
         self.target = target
@@ -36,7 +29,8 @@ class SimpleData(object):
 def data_2_json(obj):
     return {"key":obj.key,
             "value":obj.value,
-            "target":obj.target}
+            "target":obj.target,
+            "time":obj.time}
 
 # 测试用函数 检验两张图之间的距离
 def compare():
@@ -81,7 +75,7 @@ def main(test_path = "imgs/322.jpg",top_n = 100,use_weight = False):
                     continue
                 compare_data = mDataDict[compare_index].astype('float64')
                 dist = np.sqrt(np.sum(np.square(np.subtract(sample_emb,compare_data))))
-                data = SimpleData(float(compare_index),dist,float(sample)) # 计算两张图片之间的欧氏距离
+                data = SimpleData(key=float(compare_index),value=dist,target=float(sample)) # 计算两张图片之间的欧氏距离
                 result.append(data)
                 all_result.append(data)
 
@@ -196,6 +190,29 @@ def sort_result_with_weight(result):
     return result
 
 
+test_img_path = "/Users/aria/MyDocs/pics/test"
+def save_result_test_set():
+    target_list = os.listdir(test_img_path)
+    csv_file = open('test_result.csv', 'a')
+    writer = csv.writer(csv_file)
+    for target in target_list:
+        if target == ".DS_Store":
+            continue
+        result = main(os.path.join(test_img_path,target),70)
+        name_row = [target]
+        writer.writerow(name_row)
+        file_row = []
+        value_row = []
+        for item in result:
+            file_row.append(item.key)
+            value_row.append(item.value)
+        writer.writerow(file_row)
+        writer.writerow(value_row)
+    csv_file.close()
+
+
+
+
+
 if __name__ == '__main__':
-    imgs = ["imgs/1235843763.jpg","imgs/318.jpg"]
-    result = main(imgs,10)
+    save_result_test_set()
